@@ -7,7 +7,7 @@ from chitra import modify
 master = Tk()
 window = MyGui(master)
 
-image_path = os.path.join(".", "image", "braunchm.tif")
+image_path = os.path.join("SatelliteImageProcessing","image", "braunchm.tif")
 
 # Create an instance of the modify class
 mod = modify(image_path)
