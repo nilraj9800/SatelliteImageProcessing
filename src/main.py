@@ -1,24 +1,20 @@
-from tkinter import Tk
-from event_handling import Event
-from gui import MyGui
+import sys
 import os
-from chitra import modify
+from PySide6 import QtWidgets
 
-master = Tk()
-window = MyGui(master)
-
-image_path = os.path.join("SatelliteImageProcessing","image", "braunchm.tif")
-
-# Create an instance of the modify class
-mod = modify(image_path)
-
-# Get the image array from the instance
-image_holder, _ = mod.open_image()
-
-img = window.load_image(image_holder)
+from gui import MainWindow
+from event_handling import Event
+from chitra import Modify
 
 
-# Initialize Event here, and pass whatever canvas/frame you have.
-circle_drawing = Event(window.canvas, img, window.imageid, mod)
-
-master.mainloop()
+if __name__ == "__main__":
+    image_path = os.path.join("SatelliteImageProcessing","image", "braunchm.tif")
+    mod = Modify(image_path)
+    image_holder, transform = mod.open_image()
+    app = QtWidgets.QApplication([])
+    with open("SatelliteImageProcessing\\src\\style.qss", "r") as file:
+        style_sheet = file.read()
+    
+    app.setStyleSheet(style_sheet)
+    widget = MainWindow(image_holder, transform)
+    sys.exit(app.exec())

@@ -1,30 +1,32 @@
 from tkinter import *
+from PySide6 import QtCore, QtWidgets, QtGui
 from PIL import Image, ImageTk
-from chitra import modify
+import geopandas as gpd
+import pandas as pd
+import rasterio
 
 class Event:
-    def __init__(self, canvas, orig_img, image_id, mod):
-        self.canvas = canvas
+    def __init__(self, transform):
+        self.transform = transform 
         self.coordinate = []
-        self.orig_img = orig_img
-        print(type(self.orig_img))
-        self.image_id = image_id
-        self.mod = mod
-        self.scale = 1.0
-        self.imageid = None
-        self.delta = 0.75
-        self.canvas.bind("<Button-1>", self.capture_coordinate)
-        self.canvas.bind("<MouseWheel>", self.zoom_function)
 
     def capture_coordinate(self,event):
-        e_x, e_y = event.x, event.y
-        x, y = self.mod.pixel_to_coordinate(e_x, e_y)
-        self.coordinate.append((x, y))
-        self.create_circle(x, y)
-        return self.coordinate
+        if event.button() == QtCore.Qt.LeftButton:
+            x = event.pos().x()
+            y = event.pos().y()
+        x_trans, y_trans = rasterio.transform.xy(self.transform, x, y)
+        print(x_trans, y_trans)
+
+    def points_to_dataframe(self, x, y):
+        df = pd.DataFrame({"x": [x], "y": [y]})
+        geo_data = gpd.GeoDataFrame(df, geometry= gpd.points_from_xy(df.x, df.y), 
+                                crs = "EPSG: 25832")
+        return geo_data
 
     def create_circle(self, x, y):
-        self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, outline='red')
+        points = self.points_to_dataframe(x, y)
+        buffer_point = points.geometry.buffer(5)
+        return buffer_point
 
     def zoom_function(self, event):
         if event.delta == -120:
